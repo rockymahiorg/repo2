@@ -53,30 +53,7 @@ jobs:
           IMAGE_TAG=build-${GITHUB_RUN_ID}
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Prepare config files from Azure Blob
-        run: |
-          mkdir config
-          az storage blob download \
-            --account-name vizzhystgacc \
-            --container-name conimage \
-            --name Config/escalations-cron/STAGE.json \
-            --file config/STAGE.json \
-            --sas-token "$STORAGE_SAS"
-
-          az storage blob download \
-            --account-name vizzhystgacc \
-            --container-name conimage \
-            --name Dockerfile/escalations-cron/Dockerfile \
-            --file Dockerfile \
-            --sas-token "$STORAGE_SAS"
-
-          az storage blob download \
-            --account-name vizzhystgacc \
-            --container-name conimage \
-            --name Promtail-Config/escalations-cron/config.yaml \
-            --file config.yaml \
-            --sas-token "$STORAGE_SAS"
-
+   
       - name: Build Docker image
         run: |
           docker build -t $AZURE_CONTAINER_REGISTRY/$REPOSITORY_NAME:$COMMIT_HASH .
@@ -87,7 +64,7 @@ jobs:
 
       - name: Git Config
         run: |
-          git config --global user.email "infra@vizzhy.com"
+          git config --global user.email "tejasp0902@gmail.com"
           git config --global user.name "$GIT_USERNAME"
 
       - name: Clone Helm charts repo
