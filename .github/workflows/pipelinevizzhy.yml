@@ -69,8 +69,8 @@ jobs:
 
       - name: Clone Helm charts repo
         run: |
-          git clone https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzhy/k8s-helm-charts.git -b stage
-          cd k8s-helm-charts/escalations-cron
+          git clone https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzh/k8s-helm-charts-new.git -b stage
+          cd k8s-helm-charts-new/escalations-cron
           az storage blob download \
             --account-name vizzhystgacc \
             --container-name conimage \
