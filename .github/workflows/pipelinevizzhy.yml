@@ -25,7 +25,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }} # stored in GitHub secrets
  
       - name: Get secrets from Key Vault
-        uses: azure/secrets-store@v1
+        uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: vizzhyvault
           secrets: |
