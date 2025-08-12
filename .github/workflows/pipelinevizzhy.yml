@@ -28,12 +28,7 @@ jobs:
         uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: vizzhyvault
-          secrets: |
-            acr-username
-            acr-password
-            git-username
-            git-token
-            storage-sas
+          secrets: acr-username,acr-password,git-username,git-token,storage-sas
  
       - name: Azure CLI version
         run: az --version
