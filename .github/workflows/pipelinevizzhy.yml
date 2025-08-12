@@ -35,7 +35,7 @@ jobs:
  
       - name: Login to Azure Container Registry
         run: |
-          echo $ACR_PASSWORD | docker login $AZURE_CONTAINER_REGISTRY --username $ACR_USERNAME --password-stdin
+          echo $acr-password | docker login $AZURE_CONTAINER_REGISTRY --username $acr-username --password-stdin
  
       - name: Set environment variables
         run: |
