@@ -1,0 +1,109 @@
+name: Build and Deploy Escalations Cron
+ 
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - stage
+ 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+ 
+    env:
+      AZURE_CONTAINER_REGISTRY: vizzhyacr.azurecr.io
+      REPOSITORY_NAME: myapp
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} # stored in GitHub secrets
+ 
+      - name: Get secrets from Key Vault
+        uses: azure/secrets-store@v1
+        with:
+          keyvault: vizzhyvault
+          secrets: |
+            acr-username
+            acr-password
+            git-username
+            git-token
+            storage-sas
+ 
+      - name: Azure CLI version
+        run: az --version
+ 
+      - name: Login to Azure Container Registry
+        run: |
+          echo $ACR_PASSWORD | docker login $AZURE_CONTAINER_REGISTRY --username $ACR_USERNAME --password-stdin
+ 
+      - name: Set environment variables
+        run: |
+          COMMIT_HASH=$(echo "${GITHUB_SHA}" | cut -c 1-7)
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          IMAGE_TAG=build-${GITHUB_RUN_ID}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+ 
+      - name: Prepare config files from Azure Blob
+        run: |
+          mkdir config
+          az storage blob download \
+            --account-name vizzhystgacc \
+            --container-name conimage \
+            --name Config/escalations-cron/STAGE.json \
+            --file config/STAGE.json \
+            --sas-token $STORAGE_SAS
+ 
+          az storage blob download \
+            --account-name vizzhystgacc \
+            --container-name conimage \
+            --name Dockerfile/escalations-cron/Dockerfile \
+            --file Dockerfile \
+            --sas-token $STORAGE_SAS
+ 
+          az storage blob download \
+            --account-name vizzhystgacc \
+            --container-name conimage \
+            --name Promtail-Config/escalations-cron/config.yaml \
+            --file config.yaml \
+            --sas-token $STORAGE_SAS
+ 
+      - name: Build Docker image
+        run: |
+          docker build -t $AZURE_CONTAINER_REGISTRY/$REPOSITORY_NAME:$COMMIT_HASH .
+ 
+      - name: Push Docker image to ACR
+        run: |
+          docker push $AZURE_CONTAINER_REGISTRY/$REPOSITORY_NAME:$COMMIT_HASH
+ 
+      - name: Git Config
+        run: |
+          git config --global user.email "infra@vizzhy.com"
+          git config --global user.name "${{ env.GIT_USERNAME }}"
+ 
+      - name: Clone Helm charts repo
+        run: |
+          git clone https://${{ env.GIT_USERNAME }}:${{ env.GIT_TOKEN }}@bitbucket.org/vizzhy/k8s-helm-charts.git -b stage
+          cd k8s-helm-charts/escalations-cron
+          az storage blob download \
+            --account-name vizzhystgacc \
+            --container-name conimage \
+            --name sed.sh \
+            --file sed.sh \
+            --sas-token $STORAGE_SAS
+          chmod +x sed.sh
+          bash sed.sh $COMMIT_HASH
+          rm sed.sh
+          cd ..
+          git add -A
+          git commit -m "escalations-cron values changed"
+          git pull --rebase origin stage || git rebase --abort
+          git push https://${{ env.GIT_USERNAME }}:${{ env.GIT_TOKEN }}@bitbucket.org/vizzhy/k8s-helm-charts.git
+ 
+      - name: Done
+        run: echo "Pipeline Completed..."
