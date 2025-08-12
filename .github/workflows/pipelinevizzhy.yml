@@ -69,7 +69,7 @@ jobs:
 
       - name: Clone Helm charts repo
         run: |
-          git clone https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzh/k8s-helm-charts-new.git -b stage
+          git clone https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzh/k8s-helm-charts-new.git -b main
           cd k8s-helm-charts-new/escalations-cron
           az storage blob download \
             --account-name vizzhystgacc \
@@ -84,7 +84,7 @@ jobs:
           git add -A
           git commit -m "escalations-cron values changed"
           git pull --rebase origin stage || git rebase --abort
-          git push https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzhy/k8s-helm-charts.git
+          git push https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzh/k8s-helm-charts-new.git
 
       - name: Done
         run: echo "Pipeline Completed..."
