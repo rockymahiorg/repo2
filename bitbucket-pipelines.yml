@@ -1,0 +1,31 @@
+image: mcr.microsoft.com/azure-cli
+
+pipelines:
+  default:
+    - step:
+        name: Build and Push to ACR
+        services:
+          - docker
+        caches:
+          - docker
+        script:
+          # 1. Azure Login
+          - az login --service-principal -u $AZURE_APP_ID -p $AZURE_PASSWORD --tenant $AZURE_TENANT_ID
+          - az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+          # 2. Fetch Secret from Key Vault
+          - export DB_PASSWORD=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name db-password --query value -o tsv)
+
+          # 3. Login to ACR
+          - az acr login --name $ACR_NAME
+
+          # 4. Build Docker Image with secret
+          - docker build --build-arg DB_PASSWORD=$DB_PASSWORD -t $ACR_NAME.azurecr.io/myapp:latest .
+
+          # 5. Push Docker Image
+          - docker push $ACR_NAME.azurecr.io/myapp:latest
+
+definitions:
+  services:
+    docker:
+      memory: 2048
