@@ -20,7 +20,7 @@ pipelines:
           - az acr login --name $ACR_NAME
 
           # 4. Build Docker Image with secret
-          - docker build --build-arg DB_PASSWORD=$DB_PASSWORD -t $ACR_NAME.azurecr.io/myapp:latest .
+          - docker build --build-arg DB_PASSWORD=$DB_PASSWORD -t $ACR_NAME.azurecr.io/myapp:latestnew .
 
           # 5. Push Docker Image
           - docker push $ACR_NAME.azurecr.io/myapp:latest
