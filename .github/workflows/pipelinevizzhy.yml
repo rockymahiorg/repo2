@@ -14,6 +14,8 @@ jobs:
     env:
       AZURE_CONTAINER_REGISTRY: vizzhyacr.azurecr.io
       REPOSITORY_NAME: myapp
+      ACR_USERNAME: ${{ secrets.acr-username }}
+      ACR_PASSWORD: ${{ secrets.acr-password }}
  
     steps:
       - name: Checkout code
@@ -35,7 +37,7 @@ jobs:
  
       - name: Login to Azure Container Registry
         run: |
-          echo $acr-password | docker login $AZURE_CONTAINER_REGISTRY --username $acr-username --password-stdin
+          echo $ACR_PASSWORD | docker login $AZURE_CONTAINER_REGISTRY --username $ACR_USERNAME --password-stdin
  
       - name: Set environment variables
         run: |
