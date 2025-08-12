@@ -83,7 +83,7 @@ jobs:
           cd ..
           git add -A
           git commit -m "escalations-cron values changed"
-          git pull --rebase origin stage || git rebase --abort
+          git pull --rebase origin main || git rebase --abort
           git push https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/vizzh/k8s-helm-charts-new.git
 
       - name: Done
